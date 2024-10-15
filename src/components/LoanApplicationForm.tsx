@@ -5,7 +5,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import { PDFDownloadLink } from '@react-pdf/renderer'; // Import PDFDownloadLink
 import GeneratedReportPDF from './GeneratedReportPDF'; // Import the PDF component
-import {stripHtmlTags} from "@/lib/utils";
+import {stripHtmlTags} from "@/lib/utils"; // convert html to plan/text 
 
 type FormData = {
   companyName: string;
@@ -119,7 +119,7 @@ const LoanApplicationForm = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_OPEN_AI_API_KEY}`, // Replace with your actual OpenAI API key
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_OPEN_AI_API_KEY}`, // OpenAI API key
           },
           body: JSON.stringify({
             model: "gpt-4o-mini",
@@ -128,9 +128,9 @@ const LoanApplicationForm = () => {
             messages: [
               {
                 role: "user",
-                content: `This is the basic information of the company: ${JSON.stringify(
+                content: `Here is the basic information of the company: ${JSON.stringify(
                   data
-                )}. Create a detail report from this data in html. Which describe company summary. Current trend about market and if its good company to  give loan or not. Also propose if new loan agreement which benefit both if required.`,
+                )}.Todo: I want to create a detailed report from the given data. Which describes the company summary, Current trends in about market, and whether is it good for the company to give a loan or not. Also, please propose what a new loan agreement that benefits both (if required). Dependency: Response should be in HTML format`,
               },
             ],
           }),
@@ -184,7 +184,7 @@ const LoanApplicationForm = () => {
           </div>
           <div
             className="mt-4"
-            dangerouslySetInnerHTML={{ __html: generatedReport }}
+            dangerouslySetInnerHTML={{ __html: generatedReport.replace(/```html/g, '').replace(/```/g, '') }} // Remove the ```html and closing ```
           />
         </>
       ) : (
