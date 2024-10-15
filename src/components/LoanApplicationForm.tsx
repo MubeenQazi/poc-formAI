@@ -3,6 +3,9 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
+import { PDFDownloadLink } from '@react-pdf/renderer'; // Import PDFDownloadLink
+import GeneratedReportPDF from './GeneratedReportPDF'; // Import the PDF component
+import {stripHtmlTags} from "@/lib/utils";
 
 type FormData = {
   companyName: string;
@@ -125,9 +128,9 @@ const LoanApplicationForm = () => {
             messages: [
               {
                 role: "user",
-                content: `This is the basic information of company: ${JSON.stringify(
+                content: `This is the basic information of the company: ${JSON.stringify(
                   data
-                )}. Can you please create a detail report from this data in html. Which describe company summary. Current trend about market and if its good company to  give loan or not. Also propose if new loan agreement which benefit both if required.`,
+                )}. Create a detail report from this data in html. Which describe company summary. Current trend about market and if its good company to  give loan or not. Also propose if new loan agreement which benefit both if required.`,
               },
             ],
           }),
@@ -157,24 +160,33 @@ const LoanApplicationForm = () => {
     setGeneratedReport(null); // Clear the report
     reset(); // Reset the form
   };
+  const cleanedReport = stripHtmlTags(generatedReport as string);
   return (
     <div className="max-w-2xl mx-auto bg-white shadow-lg p-8 rounded-lg my-10">
       {generatedReport ? (
-        <div>
-          <h2 className="text-xl font-semibold">
-            Generated Report from OpenAI
-          </h2>
+        <>
+          <div className="mt-4 flex justify-between gap-3">
+            <button
+              onClick={handleBack}
+              className="w-1/2 mr-2 p-2 bg-blue-500 text-white rounded-md"
+            >
+              Back to Form
+            </button>
+            {generatedReport && (
+              <PDFDownloadLink
+                document={<GeneratedReportPDF report={cleanedReport} />}
+                fileName="generated_report.pdf"
+                className="w-1/2 ml-2 p-2 bg-green-500 text-white rounded-md text-center"
+              >
+                {loading ? "Generating PDF..." : "Download PDF"}
+              </PDFDownloadLink>
+            )}
+          </div>
           <div
             className="mt-4"
             dangerouslySetInnerHTML={{ __html: generatedReport }}
           />
-          <button
-            onClick={handleBack}
-            className="mt-4 w-full p-2 bg-blue-500 text-white rounded-md"
-          >
-            Back to Form
-          </button>
-        </div>
+        </>
       ) : (
         <>
           <h2 className="text-3xl font-bold text-gray-800 mb-6">
